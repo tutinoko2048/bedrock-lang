@@ -1,6 +1,6 @@
 {
   "name": "bedrock-lang",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Import Minecraft Bedrock .lang files from TypeScript: a TS 7.1 content mapper for types and an unplugin for bundling",
   "repository": {
     "type": "git",
