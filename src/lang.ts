@@ -1,22 +1,23 @@
-/** One `key=value` line of a .lang file. Offsets are UTF-16 indexes into the original text. */
+// Offsets are UTF-16 indexes into the original text.
+
+/** One `key=value` line of a .lang file. `start` is where the key begins. */
 export interface Entry {
   key: string;
-  keyStart: number;
   value: string;
-  /** Number of `with` arguments the value expects (`%s`, `%1$s`, `%1` ...). */
-  arity: number;
+  start: number;
 }
 
-export interface LangDiagnostic {
+/** A line that could not be read. `code` is 1 for a broken line, 2 for a duplicate key. */
+export interface ParseError {
   start: number;
   length: number;
-  messageText: string;
+  message: string;
   code: number;
 }
 
-export const parse = (text: string): { entries: Entry[]; diagnostics: LangDiagnostic[] } => {
+export const parse = (text: string): { entries: Entry[]; errors: ParseError[] } => {
   const entries: Entry[] = [];
-  const diagnostics: LangDiagnostic[] = [];
+  const errors: ParseError[] = [];
   const seen = new Set<string>();
 
   let lineStart = text.startsWith('﻿') ? 1 : 0;
@@ -29,19 +30,19 @@ export const parse = (text: string): { entries: Entry[]; diagnostics: LangDiagno
     if (trimmed !== '' && !trimmed.startsWith('##')) {
       const eq = line.indexOf('=');
       if (eq <= 0) {
-        diagnostics.push({
+        errors.push({
           start: lineStart,
           length: line.length,
-          messageText: eq === 0 ? 'Empty key.' : "Expected 'key=value'.",
+          message: eq === 0 ? 'Empty key.' : "Expected 'key=value'.",
           code: 1,
         });
       } else {
         const key = line.slice(0, eq);
         if (seen.has(key)) {
-          diagnostics.push({
+          errors.push({
             start: lineStart,
             length: key.length,
-            messageText: `Duplicate key '${key}'.`,
+            message: `Duplicate key '${key}'.`,
             code: 2,
           });
         } else {
@@ -51,7 +52,7 @@ export const parse = (text: string): { entries: Entry[]; diagnostics: LangDiagno
             .slice(eq + 1)
             .split('\t##')[0]!
             .trimEnd();
-          entries.push({ key, keyStart: lineStart, value, arity: arity(value) });
+          entries.push({ key, value, start: lineStart });
         }
       }
     }
@@ -60,10 +61,11 @@ export const parse = (text: string): { entries: Entry[]; diagnostics: LangDiagno
     lineStart = newline + 1;
   }
 
-  return { entries, diagnostics };
+  return { entries, errors };
 };
 
-const arity = (value: string): number => {
+/** Number of `with` arguments a value expects (`%s`, `%1$s`, `%1` ...). */
+export const arity = (value: string): number => {
   let sequential = 0;
   let positional = 0;
   for (const m of value.matchAll(/%(?:%|(\d+)\$[sd]|[sd]|(\d+))/g)) {
@@ -110,7 +112,7 @@ export const generate = (
     emit(`  _${i} as `);
     // Map the key text so go-to-definition, hover and references land on the .lang line
     if (mode === 'ts' && literal === `"${entry.key}"`) {
-      mappings.push([text.length + 1, entry.key.length, entry.keyStart, entry.key.length, 0]);
+      mappings.push([text.length + 1, entry.key.length, entry.start, entry.key.length, 0]);
     }
     emit(`${literal},\n`);
   });
@@ -143,7 +145,9 @@ export const generate = (
   emit('/** `with` arguments each key expects, counted from its placeholders */\n');
   emit('export interface LangArgs {\n');
   for (const entry of entries) {
-    emit(`  ${JSON.stringify(entry.key)}: [${Array(entry.arity).fill('string').join(', ')}];\n`);
+    emit(
+      `  ${JSON.stringify(entry.key)}: [${Array(arity(entry.value)).fill('string').join(', ')}];\n`,
+    );
   }
   emit('}\n');
   return { text, mappings };

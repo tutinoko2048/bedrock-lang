@@ -28,9 +28,9 @@ export const bedrockLang: UnpluginInstance<undefined, false> = createUnplugin(()
       const file = id.replace(/[?#].*$/, '');
       const declaration = file.endsWith('.d.ts');
       const path = declaration ? file.slice(0, -'.d.ts'.length) : file;
-      const { entries, diagnostics } = parse(await readFile(path, 'utf8'));
-      const [first] = diagnostics;
-      if (first) throw new Error(`${path}: ${first.messageText}`);
+      const { entries, errors } = parse(await readFile(path, 'utf8'));
+      const [first] = errors;
+      if (first) throw new Error(`${path}: ${first.message}`);
       return generate(entries, declaration ? 'dts' : 'js').text;
     },
   },

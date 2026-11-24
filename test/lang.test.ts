@@ -1,27 +1,28 @@
 import { describe, expect, test } from 'vite-plus/test';
 
-import { generate, parse } from '../src/lang';
+import { arity, generate, parse } from '../src/lang';
 
 describe('parse', () => {
   test('reads entries, comments, BOM and CRLF', () => {
     const text = '\uFEFF## title\r\na.b=Hello\r\n\r\nc=%s and %s\t## note\r\n';
-    const { entries, diagnostics } = parse(text);
-    expect(diagnostics).toEqual([]);
-    expect(entries.map(({ key, value, arity }) => [key, value, arity])).toEqual([
-      ['a.b', 'Hello', 0],
-      ['c', '%s and %s', 2],
+    const { entries, errors } = parse(text);
+    expect(errors).toEqual([]);
+    expect(entries.map(({ key, value }) => [key, value])).toEqual([
+      ['a.b', 'Hello'],
+      ['c', '%s and %s'],
     ]);
-    expect(text.slice(entries[1]!.keyStart, entries[1]!.keyStart + 1)).toBe('c');
-  });
-
-  test('counts positional placeholders and skips %%', () => {
-    const { entries } = parse('a=%2$s %1$s\nb=100%%\nc=%1 %3');
-    expect(entries.map((e) => e.arity)).toEqual([2, 0, 3]);
+    expect(text.slice(entries[1]!.start, entries[1]!.start + 1)).toBe('c');
   });
 
   test('reports broken lines and duplicates', () => {
-    const { diagnostics } = parse('nope\n=x\na=1\na=2');
-    expect(diagnostics.map((d) => d.code)).toEqual([1, 1, 2]);
+    const { errors } = parse('nope\n=x\na=1\na=2');
+    expect(errors.map((e) => e.code)).toEqual([1, 1, 2]);
+  });
+});
+
+describe('arity', () => {
+  test('counts positional placeholders and skips %%', () => {
+    expect(['%2$s %1$s', '100%%', '%1 %3', '%s and %s'].map(arity)).toEqual([2, 0, 3, 2]);
   });
 });
 

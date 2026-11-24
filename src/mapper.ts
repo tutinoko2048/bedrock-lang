@@ -1,7 +1,7 @@
 // TypeScript 7.1 content mapper for .lang files.
 // TypeScript starts this process (package.json "typescript.contentMapper.exec")
 // and talks JSON-RPC over stdio with LSP-style Content-Length framing.
-import { generate, parse, type LangDiagnostic, type Mapping } from './lang';
+import { generate, parse, type Mapping } from './lang';
 
 type Encoding = 'utf-8' | 'utf-16';
 let encoding: Encoding = 'utf-16';
@@ -16,13 +16,10 @@ const handlers: Record<string, Handler> = {
   openProject: () => ({}),
   closeProject: () => null,
   transform(params: { content: string }) {
-    const { entries, diagnostics } = parse(params.content);
+    const { entries, errors } = parse(params.content);
     const virtual = generate(entries, 'ts');
-    if (encoding === 'utf-16') {
-      return { text: virtual.text, extension: '.ts', mappings: virtual.mappings, diagnostics };
-    }
-    const v = utf8Offsets(virtual.text);
-    const o = utf8Offsets(params.content);
+    const v = offsets(virtual.text);
+    const o = offsets(params.content);
     return {
       text: virtual.text,
       extension: '.ts',
@@ -33,14 +30,18 @@ const handlers: Record<string, Handler> = {
         o(os + ol) - o(os),
         kind,
       ]),
-      diagnostics: diagnostics.map((d): LangDiagnostic => ({
-        ...d,
-        start: o(d.start),
-        length: o(d.start + d.length) - o(d.start),
+      diagnostics: errors.map(({ start, length, message, code }) => ({
+        start: o(start),
+        length: o(start + length) - o(start),
+        messageText: message,
+        code,
       })),
     };
   },
 };
+
+/** Converts our UTF-16 indexes to the encoding TypeScript asked for. */
+const offsets = (text: string) => (encoding === 'utf-16' ? (i: number) => i : utf8Offsets(text));
 
 /** UTF-16 index -> UTF-8 byte offset for one text. */
 const utf8Offsets = (text: string) => {
