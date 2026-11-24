@@ -97,14 +97,6 @@ import * as lang from './texts/en_US.lang';
 console.log(lang['example.greeting']);
 ```
 
-Each key is a separate export with the key itself as the export name, using ES2022 arbitrary module namespace names:
-
-```js
-const _0 = 'Hello!';
-const _1 = 'Saved recipe "%s"';
-export { _0 as 'example.greeting', _1 as 'example.saved' };
-```
-
 Static access such as `lang['example.greeting']` lets the bundler drop unused keys and inline the text it keeps. Dynamic access, such as `lang[key]` with a variable `key` or `Object.keys(lang)`, keeps every key.
 
 ### Default import
