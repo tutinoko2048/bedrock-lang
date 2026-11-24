@@ -1,0 +1,15 @@
+{
+  "include": ["src", "test"],
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2024",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "declaration": true,
+    "isolatedDeclarations": true,
+    // unplugin's types import every bundler's types as optional peers
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}

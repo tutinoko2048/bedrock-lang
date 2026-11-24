@@ -1,0 +1,6 @@
+## Example add-on
+
+example.greeting=Hello!
+example.saved=Saved recipe "%s"
+example.moved=Moved %1$s to %2$s	## trailing comment
+example.percent=100%% done

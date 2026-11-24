@@ -1,0 +1,14 @@
+{
+  "include": ["src"],
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2024",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": [],
+    "noEmit": true,
+    "declaration": true,
+    "isolatedDeclarations": true
+  },
+  "contentMappers": [{ "package": "bedrock-lang", "extensions": [".lang"] }]
+}

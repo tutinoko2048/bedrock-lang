@@ -1,0 +1,8 @@
+packages:
+  - example
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'

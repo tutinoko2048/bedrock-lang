@@ -1,0 +1,57 @@
+{
+  "name": "bedrock-lang",
+  "version": "0.0.0",
+  "description": "Import Minecraft Bedrock .lang files from TypeScript: a TS 7.1 content mapper for types and an unplugin for bundling",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./bun": "./dist/bun.mjs",
+    "./esbuild": "./dist/esbuild.mjs",
+    "./farm": "./dist/farm.mjs",
+    "./rolldown": "./dist/rolldown.mjs",
+    "./rollup": "./dist/rollup.mjs",
+    "./rsbuild": "./dist/rsbuild.mjs",
+    "./rspack": "./dist/rspack.mjs",
+    "./vite": "./dist/vite.mjs",
+    "./webpack": "./dist/webpack.mjs",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "test": "vp test"
+  },
+  "dependencies": {
+    "unplugin": "^3.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "7.1.0-beta",
+    "vite-plus": "1.4.0"
+  },
+  "typescript": {
+    "contentMapper": {
+      "exec": [
+        "node",
+        "./dist/mapper.mjs"
+      ]
+    }
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.23.0"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "^24.11.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "packageManager": "pnpm@12.23.0"
+}
